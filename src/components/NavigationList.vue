@@ -36,11 +36,15 @@
 
 		<!-- list of notes -->
 		<template v-for="item in noteItems">
-			<AppNavigationItem v-if="category!==null && category!==item.category"
-				:key="item.category" :item="categoryToItem(item.category)"
+			<AppNavigationCaption v-if="category!==null && category!==item.category"
+				:key="item.category"
+				icon="icon-files"
+				class="app-navigation-noclose"
+				:title="categoryToLabel(item.category)"
+				@click.native="$emit('category-selected', item.category)"
 			/>
 			<AppNavigationCaption v-if="category===null && item.timeslot"
-				:key="item.timeslot" :text="item.timeslot"
+				:key="item.timeslot" :title="item.timeslot"
 			/>
 			<NavigationNoteItem v-for="note in item.notes"
 				:key="note.id" :note="note"
@@ -53,7 +57,6 @@
 
 <script>
 import {
-	AppNavigationItem,
 	AppNavigationCaption,
 } from 'nextcloud-vue'
 import NavigationCategoriesItem from './NavigationCategoriesItem'
@@ -66,7 +69,6 @@ export default {
 
 	components: {
 		AppNavigationCaption,
-		AppNavigationItem,
 		NavigationCategoriesItem,
 		NavigationNoteItem,
 	},
@@ -145,14 +147,8 @@ export default {
 			]
 		},
 
-		categoryToItem(category) {
-			const label = '…/' + category.substring(this.category.length + 1)
-			return {
-				text: NotesService.categoryLabel(label),
-				classes: 'app-navigation-caption caption-item app-navigation-noclose',
-				icon: 'nav-icon-files',
-				action: this.$emit.bind(this, 'category-selected', category),
-			}
+		categoryToLabel(category) {
+			return NotesService.categoryLabel(category.substring(this.category.length + 1))
 		},
 
 		getTimeslotFromNote(note) {

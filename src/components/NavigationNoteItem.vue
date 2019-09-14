@@ -1,9 +1,27 @@
 <template>
-	<AppNavigationItem :item="item" :menu-open.sync="menuOpen" />
+	<AppNavigationItem
+		:title="title"
+		:icon="icon"
+		:menu-open.sync="menuOpen"
+		:to="{ name: 'note', params: { noteId: note.id.toString() } }"
+	>
+		<template slot="actions">
+			<ActionButton :icon="actionFavoriteIcon" @click="onToggleFavorite">
+				{{ actionFavoriteText }}
+			</ActionButton>
+			<ActionButton icon="icon-files-dark" @click="onCategorySelected">
+				{{ actionCategoryText }}
+			</ActionButton>
+			<ActionButton :icon="actionDeleteIcon" @click="onDeleteNote">
+				{{ t('notes', 'Delete note') }}
+			</ActionButton>
+		</template>
+	</AppNavigationItem>
 </template>
 
 <script>
 import {
+	ActionButton,
 	AppNavigationItem,
 } from 'nextcloud-vue'
 import NotesService from '../NotesService'
@@ -12,6 +30,7 @@ export default {
 	name: 'NavigationNoteItem',
 
 	components: {
+		ActionButton,
 		AppNavigationItem,
 	},
 
@@ -33,46 +52,38 @@ export default {
 	},
 
 	computed: {
-		item() {
+		icon() {
 			let icon = ''
 			if (this.note.error) {
 				icon = 'nav-icon icon-error-color'
 			} else if (this.note.favorite) {
 				icon = 'nav-icon icon-starred'
 			}
-			let iconActionFavorite = this.note.favorite ? 'icon-star-dark' : 'icon-starred'
+			return icon
+		},
+
+		title() {
+			return this.note.title + (this.note.unsaved ? ' *' : '')
+		},
+
+		actionFavoriteText() {
+			return this.note.favorite ? this.t('notes', 'Remove from favorites') : this.t('notes', 'Add to favorites')
+		},
+
+		actionFavoriteIcon() {
+			let icon = this.note.favorite ? 'icon-star-dark' : 'icon-starred'
 			if (this.loading.favorite) {
-				iconActionFavorite += ' loading'
+				icon += ' loading'
 			}
-			return {
-				text: this.note.title + (this.note.unsaved ? ' *' : ''),
-				icon: icon,
-				router: {
-					name: 'note',
-					params: {
-						noteId: this.note.id.toString(),
-					},
-				},
-				utils: {
-					actions: [
-						{
-							text: this.note.favorite ? this.t('notes', 'Remove from favorites') : this.t('notes', 'Add to favorites'),
-							icon: iconActionFavorite,
-							action: this.onToggleFavorite,
-						},
-						{
-							text: NotesService.categoryLabel(this.note.category),
-							icon: 'icon-files-dark',
-							action: this.onCategorySelected,
-						},
-						{
-							text: this.t('notes', 'Delete note'),
-							icon: 'icon-delete' + (this.loading.delete ? ' loading' : ''),
-							action: this.onDeleteNote,
-						},
-					],
-				},
-			}
+			return icon
+		},
+
+		actionCategoryText() {
+			return NotesService.categoryLabel(this.note.category)
+		},
+
+		actionDeleteIcon() {
+			return 'icon-delete' + (this.loading.delete ? ' loading' : '')
 		},
 	},
 
